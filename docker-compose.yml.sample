@@ -1,0 +1,120 @@
+```yml
+version: '3.1'
+
+services:
+
+  # Database for nginx-proxy-manager
+
+  db:
+
+    image: 'mysql:5.7'
+
+    container_name: 'npm-db'
+
+    environment:
+
+      MYSQL_ROOT_PASSWORD: 'your-root-password'
+
+      MYSQL_DATABASE: 'your-database'
+
+      MYSQL_USER: 'your-user'
+
+      MYSQL_PASSWORD: 'your-password'
+
+    volumes:
+
+      - './npm/db:/var/lib/mysql'
+
+  # Nginx Proxy Manager
+
+  nginx-proxy-manager:
+
+    image: 'jc21/nginx-proxy-manager'
+
+    container_name: 'nginx-proxy-manager'
+
+    ports:
+
+      - '80:80'
+
+      - '81:81'
+
+      - '443:443'
+
+    volumes:
+
+      - './npm/data:/data'
+
+      - './npm/letsencrypt:/etc/letsencrypt'
+
+    environment:
+
+      DB_MYSQL_HOST: db
+
+      DB_MYSQL_PORT: 3306
+
+      DB_MYSQL_USER: 'your-db-user'
+
+      DB_MYSQL_PASSWORD: 'your-db-password'
+
+      DB_MYSQL_NAME: 'your-db-name'
+
+    depends_on:
+
+      - db
+
+  # ... (Rest of your services with sensitive information removed)
+
+  # DuckDNS - Dynamic DNS
+
+  duckdns:
+
+    image: linuxserver/duckdns
+
+    container_name: duckdns
+
+    environment:
+
+      SUBDOMAINS: 'your-subdomains'
+
+      TOKEN: 'your-token'
+
+      TZ: 'your-timezone'
+
+    volumes:
+
+      - '/etc/localtime:/etc/localtime:ro'
+
+    restart: unless-stopped
+
+  # Tautulli - Plex Monitoring
+
+  tautulli:
+
+    image: linuxserver/tautulli
+
+    container_name: tautulli
+
+    environment:
+
+      PUID: 1000
+
+      PGID: 1000
+
+      TZ: 'your-timezone'
+
+  watchtower:
+
+    image: containrrr/watchtower
+
+    volumes:
+
+      - '/var/run/docker.sock:/var/run/docker.sock'
+
+    environment:
+
+      - WATCHTOWER_CLEANUP=true  # Optional: Remove old images
+
+    restart: unless-stopped
+
+```
